@@ -1,10 +1,13 @@
 from hashlib import md5
+from itertools import ifilter
 from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import smart_str
 from django.utils.importlib import import_module
+from django.contrib.staticfiles import finders
 from static_precompiler.exceptions import UnsupportedFile
 from static_precompiler.settings import MTIME_DELAY, POSIX_COMPATIBLE, STATIC_URL, COMPILERS
+from static_precompiler.finders import StaticPrecompilerFinder
 import os
 import re
 import socket
@@ -148,3 +151,44 @@ def compile_static_lazy(path):
             return compiler.compile_lazy(path)
 
     raise UnsupportedFile("The source file '{0}' is not supported by any of available compilers.".format(path))
+
+# PATCH: Add util for getting supported extensions
+__supported_extensions
+
+def get_supported_extensions():
+    global __supported_extensions
+
+    if not __supported_extensions:
+        __supported_extensions = [compiler.EXTENSION for compiler in get_compilers()]
+
+    return __supported_extensions
+
+
+# PATCH: Add util for finding all static dirs
+class StaticDirsLocator(object):
+
+    # Contains list of static folders for all StaticFinders
+    # Ex.: ['path/to/app1/static', 'path/to/app2/static']
+    __STATIC_DIRS_CACHE = None
+
+    def __get_static_dirs(self):
+
+        if not self.__STATIC_DIRS_CACHE:
+
+            # All file-based static finders except finder which serve compiled files
+            finders_ = (finder for finder in finders.get_finders()
+                        if not isinstance(finder, StaticPrecompilerFinder) and hasattr(finder, 'storages'))
+
+            for finder in finders_:
+                # All directories with static files
+                paths = (storage.location for storage in finder.storages.itervalues())
+                paths = ifilter(lambda p: os.path.os.path.exists(p), paths)
+                self.__STATIC_DIRS_CACHE = list(paths)
+
+        return self.__STATIC_DIRS_CACHE
+
+    def __call__(self):
+        return self.__get_static_dirs()
+
+
+get_static_dirs = StaticDirsLocator()

@@ -16,6 +16,9 @@ class BaseCompiler(object):
 
     supports_dependencies = False
 
+    # PATCH: Add required attribute, needed for 'static_mod' tag
+    EXTENSION = ''
+
     def is_supported(self, source_path):
         """ Return True iff provided source file type is supported by this precompiler.
 

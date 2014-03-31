@@ -6,8 +6,10 @@ from static_precompiler.utils import run_command
 
 class CoffeeScript(BaseCompiler):
 
+    EXTENSION = ".coffee"
+
     def is_supported(self, source_path):
-        return source_path.endswith(".coffee")
+        return source_path.endswith(self.EXTENSION)
 
     def get_output_filename(self, source_filename):
         return source_filename[:-7] + ".js"

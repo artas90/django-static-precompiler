@@ -1,7 +1,8 @@
+from itertools import chain, repeat
 from static_precompiler.exceptions import StaticCompilationError
 from static_precompiler.compilers.base import BaseCompiler
 from static_precompiler.settings import SCSS_EXECUTABLE, STATIC_ROOT, SCSS_USE_COMPASS
-from static_precompiler.utils import run_command, convert_urls
+from static_precompiler.utils import run_command, convert_urls, get_static_dirs
 import os
 import posixpath
 import re
@@ -36,6 +37,10 @@ class SCSS(BaseCompiler):
 
         if SCSS_USE_COMPASS:
             args.append("--compass")
+
+        # PATCH: Add include_dirs (-I path) to scss call
+        include_dirs = chain(*zip(repeat('-I'), get_static_dirs()))
+        args.extend(include_dirs)
 
         # `cwd` is a directory containing `source_path`. Ex: source_path = '1/2/3', full_source_path = '/abc/1/2/3' -> cwd = '/abc'
         cwd = os.path.normpath(os.path.join(full_source_path, *([".."] * len(source_path.split("/")))))
@@ -136,9 +141,10 @@ class SCSS(BaseCompiler):
         except ValueError:
             pass
 
-        raise StaticCompilationError(
-            "Can't locate the imported file: {0}".format(import_path)
-        )
+        # PATCH: TODO: Commented due to - Can't locate the imported file: compass/css3.scss
+        # raise StaticCompilationError(
+        #     "Can't locate the imported file: {0}".format(import_path)
+        # )
 
     def find_dependencies(self, source_path):
         source = self.get_source(source_path)
@@ -146,6 +152,9 @@ class SCSS(BaseCompiler):
         dependencies = set()
         for import_path in self.find_imports(source):
             import_path = self.locate_imported_file(source_dir, import_path)
+            # PATCH: After adding include paths to compiler call some import_path is valid
+            if not import_path:
+                continue
             dependencies.add(import_path)
             dependencies.update(self.find_dependencies(import_path))
         return sorted(dependencies)
