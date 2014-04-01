@@ -153,7 +153,7 @@ def compile_static_lazy(path):
     raise UnsupportedFile("The source file '{0}' is not supported by any of available compilers.".format(path))
 
 # PATCH: Add util for getting supported extensions
-__supported_extensions
+__supported_extensions = None
 
 def get_supported_extensions():
     global __supported_extensions
