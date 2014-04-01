@@ -13,7 +13,7 @@ def static_mod(path):
     Temporary tag for replacing 'static-preprocessors' with modified 'static-precompilers'
     '''
     new_path = path
-    ext = posixpath.splitext(path)
+    basename, ext = posixpath.splitext(path)
     supported_extensions = get_supported_extensions()
     if ext in supported_extensions:
          new_path = compile_static(path)
