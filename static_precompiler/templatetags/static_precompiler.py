@@ -1,7 +1,7 @@
 import posixpath
 from django import template
 from django.templatetags.static import static as original_static
-from static_precompiler.utils import compile_static, get_supported_extensions
+from ..utils import compile_static, get_supported_extensions
 
 register = template.Library()
 
